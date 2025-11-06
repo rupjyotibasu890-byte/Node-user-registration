@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       password: process.env.MYSQLPASSWORD,
       database: process.env.MYSQLDATABASE,
       port: process.env.MYSQLPORT,
-      ssl: { rejectUnauthorized: false } // required for Aiven
+      ssl: { rejectUnauthorized: true } // required for Aiven
     });
 
     // ✅ Create table if it doesn’t exist
