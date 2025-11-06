@@ -1,8 +1,9 @@
 {
-  "name": "user-registration",
+  "name": "node-user-registration",
   "version": "1.0.0",
+  "main": "index.js",
   "type": "module",
   "dependencies": {
-    "mysql2": "^3.9.7"
+    "mysql2": "^3.11.0"
   }
 }
