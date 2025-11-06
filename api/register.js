@@ -23,9 +23,7 @@ export default async function handler(req, res) {
       password: process.env.MYSQLPASSWORD,
       database: process.env.MYSQLDATABASE,
       port: process.env.MYSQLPORT,
-      ssl: {
-        ca: caCert,
-      },
+      ssl: { ca: caCert },
     });
 
     await connection.execute(`
@@ -38,19 +36,22 @@ export default async function handler(req, res) {
       )
     `);
 
-    await connection.execute(
-      "INSERT INTO rupjyoti (username, email, password) VALUES (?, ?, ?)",
-      [username, email, password]
-    );
+    try {
+      await connection.execute(
+        "INSERT INTO rupjyoti (username, email, password) VALUES (?, ?, ?)",
+        [username, email, password]
+      );
+      await connection.end();
+      return res.status(200).json({ message: "✅ Registration successful!" });
+    } catch (error) {
+      if (error.code === "ER_DUP_ENTRY") {
+        return res.status(400).json({ message: "⚠️ User already registered with this email" });
+      }
+      throw error; // rethrow for other DB errors
+    }
 
-    await connection.end();
-
-    return res.status(200).json({ message: "✅ Registration successful!" });
   } catch (error) {
     console.error("❌ Database error:", error);
-    return res.status(500).json({
-      message: "❌ Server error",
-      error: error.message,
-    });
+    return res.status(500).json({ message: "❌ Server error", error: error.message });
   }
 }
