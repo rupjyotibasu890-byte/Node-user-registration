@@ -1,48 +1,49 @@
-import mysql from "mysql2/promise";
+import mysql from 'mysql2/promise';
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).send("Method Not Allowed");
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
   const { username, email, password } = req.body;
 
+  // Validate input
   if (!username || !email || !password) {
-    return res.status(400).send("All fields are required.");
+    return res.status(400).json({ message: 'All fields are required' });
   }
 
   try {
-    // ✅ Connect to Aiven MySQL
-    const conn = await mysql.createConnection({
-      host: process.env.AIVEN_HOST,
-      user: process.env.AIVEN_USER,
-      password: process.env.AIVEN_PASSWORD,
-      database: process.env.AIVEN_DB,
-      port: process.env.AIVEN_PORT,
+    // ✅ Aiven MySQL connection
+    const connection = await mysql.createConnection({
+      host: 'mysql-26a658be-rupjyotibasu890-ce85.c.aivencloud.com',
+      port: 17696,
+      user: 'avnadmin',
+      password: 'AVNS_wM0L6NMor3zsz1VoQED',
+      database: 'defaultdb',
       ssl: { rejectUnauthorized: true }
     });
 
-    // ✅ Create table automatically if not exists
-    const createTableSQL = `
+    // ✅ Create table if not exists
+    await connection.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(100) NOT NULL,
-        email VARCHAR(100) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-    await conn.execute(createTableSQL);
+        username VARCHAR(100),
+        email VARCHAR(255),
+        password VARCHAR(255)
+      )
+    `);
 
-    // ✅ Insert new user securely (Prepared Statement)
-    const insertSQL = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
-    await conn.execute(insertSQL, [username, email, password]);
+    // ✅ Insert user data using prepared statements
+    const [result] = await connection.execute(
+      'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+      [username, email, password]
+    );
 
-    await conn.end();
+    await connection.end();
 
-    return res.status(200).send("Registration successful!");
+    return res.status(200).json({ message: 'Registration successful!' });
   } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).send("Database error: " + error.message);
+    console.error('Database error:', error);
+    return res.status(500).json({ message: 'Database connection failed', error: error.message });
   }
 }
