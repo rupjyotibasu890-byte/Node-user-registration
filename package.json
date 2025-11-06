@@ -1,9 +1,8 @@
 {
-  "name": "vercel-mysql-registration",
+  "name": "user-registration",
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
     "mysql2": "^3.9.7"
   }
-
 }
